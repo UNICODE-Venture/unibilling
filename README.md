@@ -1,4 +1,6 @@
-# Payment Gateway Library Crafted by the **[UNICODE Team](https://www.unicodesolutions.co/).**
+# Wafeq Invoice SDK by **[UNICODE Team](https://www.unicodesolutions.co/)**
+
+A powerful TypeScript SDK for seamless invoice management and payment processing with Wafeq, providing comprehensive invoice generation and management capabilities
 
 # Wafeq Invoice SDK
 
