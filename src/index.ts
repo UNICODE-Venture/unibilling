@@ -14,9 +14,6 @@ export function createClient(config: WafeqConfig): WafeqClient {
 export { WafeqClient } from "./api";
 export * from "./types";
 
-// Export schemas
-export * from "./schemas";
-
 // Export utility functions
 export { createApiError } from "./utils";
 export { createConfig } from "./config";

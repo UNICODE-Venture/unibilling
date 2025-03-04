@@ -8,7 +8,6 @@ import {
   TypeEnum,
 } from "../src/types";
 import { createApiError } from "../src/utils";
-import { InvoiceSchema } from "../src/schemas";
 
 // Define a mock type for our mocked WafeqClient
 interface MockWafeqClientStatic {
@@ -110,19 +109,7 @@ jest.mock("../src/api", () => {
       try {
         // This is where we'll simulate the API response
         if (MockWafeqClient.mockResponses.getInvoice) {
-          const response = await MockWafeqClient.mockResponses.getInvoice(
-            invoiceId
-          );
-
-          // Validate response using InvoiceSchema
-          const validationResult = InvoiceSchema.safeParse(response);
-          if (!validationResult.success) {
-            throw new Error(
-              `Response validation error: ${validationResult.error.message}`
-            );
-          }
-
-          return response;
+          return MockWafeqClient.mockResponses.getInvoice(invoiceId);
         }
 
         // Default mock response
@@ -338,20 +325,6 @@ describe("WafeqClient", () => {
         "Invalid invoice data"
       );
     });
-
-    it("should handle response validation errors", async () => {
-      // Setup mock response with invalid data
-      MockedWafeqClient.mockResponses.createInvoice = jest
-        .fn()
-        .mockImplementation(() => {
-          throw new Error("Response validation error: Invalid response format");
-        });
-
-      // Call the method and expect it to throw
-      await expect(client.createInvoice(validInvoiceParams)).rejects.toThrow(
-        "Response validation error"
-      );
-    });
   });
 
   describe("bulkSendInvoices", () => {
@@ -499,20 +472,6 @@ describe("WafeqClient", () => {
       // Call the method and expect it to throw
       await expect(client.getInvoice("non-existent-id")).rejects.toThrow(
         "Invoice not found"
-      );
-    });
-
-    it("should handle response validation errors", async () => {
-      // Setup mock response with invalid data
-      MockedWafeqClient.mockResponses.getInvoice = jest.fn().mockReturnValue({
-        id: "invoice-123",
-        // Missing required fields to trigger validation error
-        created_ts: "2023-01-01T12:00:00Z",
-      });
-
-      // Call the method and expect it to throw
-      await expect(client.getInvoice("invoice-123")).rejects.toThrow(
-        "Response validation error"
       );
     });
   });
