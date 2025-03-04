@@ -122,13 +122,23 @@ export class WafeqClient {
   }
 
   /**
-   * Cancel an invoice
-   * @param invoiceId ID of the invoice to cancel
-   * @returns Status of the operation
+   * Delete an invoice by ID
+   * @param invoiceId ID of the invoice to delete
+   * @throws {Error} If the deletion fails
    */
-  async cancelInvoice(invoiceId: string): Promise<ApiResponse<null>> {
-    const response = await this.client.post(`/invoices/${invoiceId}/cancel`);
-    return response.data;
+  async deleteInvoice(invoiceId: string): Promise<void> {
+    try {
+      const response = await this.client.delete(`/invoices/${invoiceId}`);
+
+      if (response.status !== 204) {
+        throw new Error(`Unexpected response status: ${response.status}`);
+      }
+    } catch (error: any) {
+      if (error.response) {
+        throw createApiError(error);
+      }
+      throw error;
+    }
   }
 
   /**

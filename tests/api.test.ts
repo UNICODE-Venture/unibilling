@@ -17,6 +17,8 @@ interface MockWafeqClientStatic {
     createInvoice: jest.Mock | null;
     bulkSendInvoices: jest.Mock | null;
     getInvoice: jest.Mock | null;
+    downloadInvoicePdf: jest.Mock | null;
+    deleteInvoice: jest.Mock | null;
   };
   resetMocks(): void;
 }
@@ -155,15 +157,45 @@ jest.mock("../src/api", () => {
       }
     }
 
+    async downloadInvoicePdf(invoiceId: string): Promise<ArrayBuffer> {
+      try {
+        if (MockWafeqClient.mockResponses.downloadInvoicePdf) {
+          return MockWafeqClient.mockResponses.downloadInvoicePdf(invoiceId);
+        }
+
+        // Default mock response - create a small PDF-like ArrayBuffer
+        const mockPdfData = new Uint8Array([37, 80, 68, 70, 45, 49, 46, 52]); // %PDF-1.4 header
+        return mockPdfData.buffer;
+      } catch (error) {
+        throw error;
+      }
+    }
+
+    async deleteInvoice(invoiceId: string): Promise<void> {
+      try {
+        if (MockWafeqClient.mockResponses.deleteInvoice) {
+          return MockWafeqClient.mockResponses.deleteInvoice(invoiceId);
+        }
+        // Default is to return void (success)
+        return;
+      } catch (error) {
+        throw error;
+      }
+    }
+
     // Static property to hold mock responses for different methods
     static mockResponses: {
       createInvoice: jest.Mock | null;
       bulkSendInvoices: jest.Mock | null;
       getInvoice: jest.Mock | null;
+      downloadInvoicePdf: jest.Mock | null;
+      deleteInvoice: jest.Mock | null;
     } = {
       createInvoice: null,
       bulkSendInvoices: null,
       getInvoice: null,
+      downloadInvoicePdf: null,
+      deleteInvoice: null,
     };
 
     // Static method to reset all mock responses
@@ -172,6 +204,8 @@ jest.mock("../src/api", () => {
         createInvoice: null,
         bulkSendInvoices: null,
         getInvoice: null,
+        downloadInvoicePdf: null,
+        deleteInvoice: null,
       };
     }
   }
@@ -192,6 +226,8 @@ describe("WafeqClient", () => {
       createInvoice: null,
       bulkSendInvoices: null,
       getInvoice: null,
+      downloadInvoicePdf: null,
+      deleteInvoice: null,
     };
     client = new WafeqClient({ apiKey: "test-api-key" });
   });
@@ -477,6 +513,95 @@ describe("WafeqClient", () => {
       // Call the method and expect it to throw
       await expect(client.getInvoice("invoice-123")).rejects.toThrow(
         "Response validation error"
+      );
+    });
+  });
+
+  describe("downloadInvoicePdf", () => {
+    const mockInvoiceId = "invoice-123";
+
+    it("should successfully download a PDF", async () => {
+      const mockPdfData = new Uint8Array([37, 80, 68, 70, 45, 49, 46, 52]); // %PDF-1.4 header
+      MockedWafeqClient.mockResponses.downloadInvoicePdf = jest
+        .fn()
+        .mockResolvedValue(mockPdfData.buffer);
+
+      const result = await client.downloadInvoicePdf(mockInvoiceId);
+
+      expect(result).toBeInstanceOf(ArrayBuffer);
+      expect(new Uint8Array(result)).toEqual(mockPdfData);
+      expect(
+        MockedWafeqClient.mockResponses.downloadInvoicePdf
+      ).toHaveBeenCalledWith(mockInvoiceId);
+    });
+
+    it("should handle download errors", async () => {
+      const errorMessage = "Failed to download PDF";
+      MockedWafeqClient.mockResponses.downloadInvoicePdf = jest
+        .fn()
+        .mockRejectedValue(new Error(errorMessage));
+
+      await expect(client.downloadInvoicePdf(mockInvoiceId)).rejects.toThrow(
+        errorMessage
+      );
+      expect(
+        MockedWafeqClient.mockResponses.downloadInvoicePdf
+      ).toHaveBeenCalledWith(mockInvoiceId);
+    });
+
+    it("should return default mock PDF when no mock response is set", async () => {
+      const result = await client.downloadInvoicePdf(mockInvoiceId);
+
+      expect(result).toBeInstanceOf(ArrayBuffer);
+      const resultData = new Uint8Array(result);
+      expect(resultData.length).toBeGreaterThan(0);
+      expect(resultData[0]).toBe(37); // %
+      expect(resultData[1]).toBe(80); // P
+      expect(resultData[2]).toBe(68); // D
+      expect(resultData[3]).toBe(70); // F
+    });
+  });
+
+  describe("deleteInvoice", () => {
+    it("should successfully delete an invoice", async () => {
+      const invoiceId = "test-invoice-123";
+      MockedWafeqClient.mockResponses.deleteInvoice = jest
+        .fn()
+        .mockResolvedValue(undefined);
+
+      await client.deleteInvoice(invoiceId);
+
+      expect(
+        MockedWafeqClient.mockResponses.deleteInvoice
+      ).toHaveBeenCalledWith(invoiceId);
+    });
+
+    it("should throw an error when deletion fails", async () => {
+      const invoiceId = "test-invoice-123";
+      const errorMessage = "Failed to delete invoice";
+      MockedWafeqClient.mockResponses.deleteInvoice = jest
+        .fn()
+        .mockRejectedValue(new Error(errorMessage));
+
+      await expect(client.deleteInvoice(invoiceId)).rejects.toThrow(
+        errorMessage
+      );
+    });
+
+    it("should handle API errors correctly", async () => {
+      const invoiceId = "test-invoice-123";
+      const apiError = {
+        response: {
+          status: 404,
+          data: { message: "Invoice not found" },
+        },
+      };
+      MockedWafeqClient.mockResponses.deleteInvoice = jest
+        .fn()
+        .mockRejectedValue(createApiError(apiError as any));
+
+      await expect(client.deleteInvoice(invoiceId)).rejects.toThrow(
+        "Invoice not found"
       );
     });
   });
