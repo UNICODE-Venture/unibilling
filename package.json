@@ -1,5 +1,5 @@
 {
-  "name": "wafeq-invoice-sdk",
+  "name": "unibilling",
   "version": "0.2.0",
   "description": "A lightweight wrapper for the Wafeq accounting and invoicing API",
   "main": "dist/index.js",
@@ -28,12 +28,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/UNICODE-Venture/wafeq-invoice-sdk.git"
+    "url": "git+https://github.com/UNICODE-Venture/unibilling.git"
   },
   "bugs": {
-    "url": "https://github.com/UNICODE-Venture/wafeq-invoice-sdk/issues"
+    "url": "https://github.com/UNICODE-Venture/unibilling/issues"
   },
-  "homepage": "https://github.com/UNICODE-Venture/wafeq-invoice-sdk#readme",
+  "homepage": "https://github.com/UNICODE-Venture/unibilling#readme",
   "dependencies": {
     "axios": "^1.6.0"
   },

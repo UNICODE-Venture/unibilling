@@ -1,8 +1,8 @@
-# Wafeq Invoice SDK by **[UNICODE Team](https://www.unicodesolutions.co/)**
+# UniBilling by **[UNICODE Team](https://www.unicodesolutions.co/)**
 
 A powerful TypeScript SDK for seamless invoice management and payment processing with Wafeq, providing comprehensive invoice generation and management capabilities
 
-# Wafeq Invoice SDK
+# UniBilling
 
 A TypeScript SDK for interacting with the Wafeq Invoice API.
 
@@ -18,7 +18,7 @@ A TypeScript SDK for interacting with the Wafeq Invoice API.
 ## Installation
 
 ```bash
-npm install wafeq-invoice-sdk
+npm install unibilling
 ```
 
 ## Usage
@@ -26,7 +26,7 @@ npm install wafeq-invoice-sdk
 ### Basic Usage
 
 ```typescript
-import { createClient } from "wafeq-invoice-sdk";
+import { createClient } from "unibilling";
 
 // Initialize the client
 const client = createClient({
@@ -160,4 +160,4 @@ The SDK supports multiple languages for invoice generation:
 
 MIT
 
-#### If you enjoyed using Wafeq Invoice SDK, then give it a star ⭐️ and like 👍🏻. For more innovative solutions from our team, visit [Team UNICODE](https://www.unicodesolutions.co/). Keep coding and stay awesome 😉
+#### If you enjoyed using UniBilling, then give it a star ⭐️ and like 👍🏻. For more innovative solutions from our team, visit [Team UNICODE](https://www.unicodesolutions.co/). Keep coding and stay awesome 😉
