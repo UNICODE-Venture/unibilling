@@ -59,9 +59,19 @@ export class WafeqClient {
         data,
         ...config,
       });
+
+      // Check if the response indicates an error (even with 200 status)
+      if (response.data && response.data.error) {
+        throw new Error(response.data.error);
+      }
+
       return this.handleResponse<T>(response);
     } catch (error: any) {
       if (error.response) {
+        // Handle validation errors
+        if (error.response.data) {
+          throw new Error(JSON.stringify(error.response.data, null, 2));
+        }
         throw createApiError(error);
       }
       throw error;
@@ -74,7 +84,7 @@ export class WafeqClient {
    * @returns Created invoice
    */
   async createInvoice(params: InvoiceCreateParams): Promise<Invoice> {
-    return this.makeRequest<Invoice>("POST", "/invoices", params);
+    return this.makeRequest<Invoice>("POST", "/invoices/", params);
   }
 
   /**
@@ -83,7 +93,23 @@ export class WafeqClient {
    * @returns Created bill
    */
   async createBill(params: BillCreateParams): Promise<Bill> {
-    return this.makeRequest<Bill>("POST", "/bills", params);
+    const response = await this.makeRequest<any>("POST", "/bills/", params);
+
+    // If we get a paginated response instead of a bill object, something went wrong
+    if (response && "count" in response && "results" in response) {
+      throw new Error(
+        "Invalid response from server. Expected bill object but got paginated response."
+      );
+    }
+
+    // Validate that we got a proper bill object
+    if (!response || !response.id || !response.bill_number) {
+      throw new Error(
+        "Invalid response from server. Bill was not created properly."
+      );
+    }
+
+    return response;
   }
 
   /**
@@ -95,7 +121,7 @@ export class WafeqClient {
   async downloadBillPdf(billId: string): Promise<ArrayBuffer> {
     return this.makeRequest<ArrayBuffer>(
       "GET",
-      `/bills/${billId}/download`,
+      `/bills/${billId}/download/`,
       undefined,
       { responseType: "arraybuffer" }
     );
@@ -107,7 +133,7 @@ export class WafeqClient {
    * @returns Invoice details
    */
   async getInvoice(invoiceId: string): Promise<Invoice> {
-    return this.makeRequest<Invoice>("GET", `/invoices/${invoiceId}`);
+    return this.makeRequest<Invoice>("GET", `/invoices/${invoiceId}/`);
   }
 
   /**
@@ -116,7 +142,7 @@ export class WafeqClient {
    * @throws {Error} If the deletion fails
    */
   async deleteInvoice(invoiceId: string): Promise<void> {
-    await this.makeRequest<void>("DELETE", `/invoices/${invoiceId}`);
+    await this.makeRequest<void>("DELETE", `/invoices/${invoiceId}/`);
   }
 
   /**
@@ -128,7 +154,7 @@ export class WafeqClient {
   async downloadInvoicePdf(invoiceId: string): Promise<ArrayBuffer> {
     return this.makeRequest<ArrayBuffer>(
       "GET",
-      `/invoices/${invoiceId}/download`,
+      `/invoices/${invoiceId}/download/`,
       undefined,
       { responseType: "arraybuffer" }
     );
