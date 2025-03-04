@@ -23,6 +23,7 @@ interface MockWafeqClientStatic {
     downloadInvoicePdf: jest.Mock | null;
     deleteInvoice: jest.Mock | null;
     createBill: jest.Mock | null;
+    downloadBillPdf: jest.Mock | null;
   };
   resetMocks(): void;
 }
@@ -220,6 +221,20 @@ jest.mock("../src/api", () => {
       }
     }
 
+    async downloadBillPdf(billId: string): Promise<ArrayBuffer> {
+      try {
+        if (MockWafeqClient.mockResponses.downloadBillPdf) {
+          return MockWafeqClient.mockResponses.downloadBillPdf(billId);
+        }
+
+        // Default mock response - create a small PDF-like ArrayBuffer
+        const mockPdfData = new Uint8Array([37, 80, 68, 70, 45, 49, 46, 52]); // %PDF-1.4 header
+        return mockPdfData.buffer;
+      } catch (error) {
+        throw error;
+      }
+    }
+
     // Static property to hold mock responses for different methods
     static mockResponses: {
       createInvoice: jest.Mock | null;
@@ -228,6 +243,7 @@ jest.mock("../src/api", () => {
       downloadInvoicePdf: jest.Mock | null;
       deleteInvoice: jest.Mock | null;
       createBill: jest.Mock | null;
+      downloadBillPdf: jest.Mock | null;
     } = {
       createInvoice: null,
       bulkSendInvoices: null,
@@ -235,6 +251,7 @@ jest.mock("../src/api", () => {
       downloadInvoicePdf: null,
       deleteInvoice: null,
       createBill: null,
+      downloadBillPdf: null,
     };
 
     // Static method to reset all mock responses
@@ -246,6 +263,7 @@ jest.mock("../src/api", () => {
         downloadInvoicePdf: null,
         deleteInvoice: null,
         createBill: null,
+        downloadBillPdf: null,
       };
     }
   }
@@ -269,6 +287,7 @@ describe("WafeqClient", () => {
       downloadInvoicePdf: null,
       deleteInvoice: null,
       createBill: null,
+      downloadBillPdf: null,
     };
     client = new WafeqClient({ apiKey: "test-api-key" });
   });
@@ -751,6 +770,51 @@ describe("WafeqClient", () => {
 
       expect(result).toEqual(mockResponseWithOptionalFields);
       expect(mockCreateBill).toHaveBeenCalledWith(paramsWithOptionalFields);
+    });
+  });
+
+  describe("downloadBillPdf", () => {
+    const mockBillId = "bill-123";
+
+    it("should successfully download a PDF", async () => {
+      const mockPdfData = new Uint8Array([37, 80, 68, 70, 45, 49, 46, 52]); // %PDF-1.4 header
+      MockedWafeqClient.mockResponses.downloadBillPdf = jest
+        .fn()
+        .mockResolvedValue(mockPdfData.buffer);
+
+      const result = await client.downloadBillPdf(mockBillId);
+
+      expect(result).toBeInstanceOf(ArrayBuffer);
+      expect(new Uint8Array(result)).toEqual(mockPdfData);
+      expect(
+        MockedWafeqClient.mockResponses.downloadBillPdf
+      ).toHaveBeenCalledWith(mockBillId);
+    });
+
+    it("should handle download errors", async () => {
+      const errorMessage = "Failed to download PDF";
+      MockedWafeqClient.mockResponses.downloadBillPdf = jest
+        .fn()
+        .mockRejectedValue(new Error(errorMessage));
+
+      await expect(client.downloadBillPdf(mockBillId)).rejects.toThrow(
+        errorMessage
+      );
+      expect(
+        MockedWafeqClient.mockResponses.downloadBillPdf
+      ).toHaveBeenCalledWith(mockBillId);
+    });
+
+    it("should return default mock PDF when no mock response is set", async () => {
+      const result = await client.downloadBillPdf(mockBillId);
+
+      expect(result).toBeInstanceOf(ArrayBuffer);
+      const resultData = new Uint8Array(result);
+      expect(resultData.length).toBeGreaterThan(0);
+      expect(resultData[0]).toBe(37); // %
+      expect(resultData[1]).toBe(80); // P
+      expect(resultData[2]).toBe(68); // D
+      expect(resultData[3]).toBe(70); // F
     });
   });
 });

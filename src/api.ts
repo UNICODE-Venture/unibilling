@@ -87,6 +87,21 @@ export class WafeqClient {
   }
 
   /**
+   * Download bill PDF
+   * @param billId ID of the bill to download
+   * @returns ArrayBuffer containing the PDF file data
+   * @throws {Error} If the download fails
+   */
+  async downloadBillPdf(billId: string): Promise<ArrayBuffer> {
+    return this.makeRequest<ArrayBuffer>(
+      "GET",
+      `/bills/${billId}/download`,
+      undefined,
+      { responseType: "arraybuffer" }
+    );
+  }
+
+  /**
    * Get an invoice by ID
    * @param invoiceId ID of the invoice to retrieve
    * @returns Invoice details
