@@ -4,6 +4,8 @@ import {
   Invoice,
   InvoiceCreateParams,
   BulkSendInvoiceParams,
+  BillCreateParams,
+  Bill,
 } from "./types";
 import { createConfig } from "./config";
 import { createApiError } from "./utils";
@@ -73,6 +75,15 @@ export class WafeqClient {
    */
   async createInvoice(params: InvoiceCreateParams): Promise<Invoice> {
     return this.makeRequest<Invoice>("POST", "/invoices", params);
+  }
+
+  /**
+   * Create a new bill
+   * @param params Bill creation parameters
+   * @returns Created bill
+   */
+  async createBill(params: BillCreateParams): Promise<Bill> {
+    return this.makeRequest<Bill>("POST", "/bills", params);
   }
 
   /**

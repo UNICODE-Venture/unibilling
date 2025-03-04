@@ -6,6 +6,10 @@ import {
   BulkSendInvoiceParams,
   MediumEnum,
   TypeEnum,
+  Bill,
+  BillCreateParams,
+  BillStatusEnum,
+  TaxAmountTypeEnum,
 } from "../src/types";
 import { createApiError } from "../src/utils";
 
@@ -18,6 +22,7 @@ interface MockWafeqClientStatic {
     getInvoice: jest.Mock | null;
     downloadInvoicePdf: jest.Mock | null;
     deleteInvoice: jest.Mock | null;
+    createBill: jest.Mock | null;
   };
   resetMocks(): void;
 }
@@ -170,6 +175,51 @@ jest.mock("../src/api", () => {
       }
     }
 
+    async createBill(params: BillCreateParams): Promise<Bill> {
+      // Check for required fields
+      if (!params.bill_number) {
+        throw new Error("Validation error: Bill number is required");
+      }
+
+      // Mock API call
+      try {
+        // This is where we'll simulate the API response
+        if (MockWafeqClient.mockResponses.createBill) {
+          return MockWafeqClient.mockResponses.createBill(params);
+        }
+
+        // Default mock response
+        return {
+          id: "mock-bill-123",
+          bill_number: params.bill_number,
+          bill_date: params.bill_date,
+          bill_due_date: params.bill_due_date,
+          contact: params.contact,
+          currency: params.currency,
+          amount: 100,
+          balance: 100,
+          tax_amount: 0,
+          created_ts: "2023-01-01T12:00:00Z",
+          modified_ts: "2023-01-01T12:00:00Z",
+          language: params.language,
+          line_items: params.line_items.map((item) => ({
+            id: "mock-line-item-123",
+            account: item.account,
+            description: item.description,
+            quantity: item.quantity,
+            unit_amount: item.unit_amount,
+            line_amount: item.quantity * item.unit_amount,
+            tax_amount: 0,
+            created_ts: "2023-01-01T12:00:00Z",
+            modified_ts: "2023-01-01T12:00:00Z",
+            tax_rate: item.tax_rate,
+          })),
+        };
+      } catch (error) {
+        throw error;
+      }
+    }
+
     // Static property to hold mock responses for different methods
     static mockResponses: {
       createInvoice: jest.Mock | null;
@@ -177,12 +227,14 @@ jest.mock("../src/api", () => {
       getInvoice: jest.Mock | null;
       downloadInvoicePdf: jest.Mock | null;
       deleteInvoice: jest.Mock | null;
+      createBill: jest.Mock | null;
     } = {
       createInvoice: null,
       bulkSendInvoices: null,
       getInvoice: null,
       downloadInvoicePdf: null,
       deleteInvoice: null,
+      createBill: null,
     };
 
     // Static method to reset all mock responses
@@ -193,6 +245,7 @@ jest.mock("../src/api", () => {
         getInvoice: null,
         downloadInvoicePdf: null,
         deleteInvoice: null,
+        createBill: null,
       };
     }
   }
@@ -215,6 +268,7 @@ describe("WafeqClient", () => {
       getInvoice: null,
       downloadInvoicePdf: null,
       deleteInvoice: null,
+      createBill: null,
     };
     client = new WafeqClient({ apiKey: "test-api-key" });
   });
@@ -562,6 +616,141 @@ describe("WafeqClient", () => {
       await expect(client.deleteInvoice(invoiceId)).rejects.toThrow(
         "Invoice not found"
       );
+    });
+  });
+
+  describe("createBill", () => {
+    const validBillParams: BillCreateParams = {
+      bill_number: "BILL-001",
+      bill_date: "2023-01-01",
+      bill_due_date: "2023-01-15",
+      contact: "contact-id-123",
+      line_items: [
+        {
+          account: "account-123",
+          description: "Test Product",
+          quantity: 2,
+          unit_amount: 100,
+          tax_rate: "tax-rate-123",
+        },
+      ],
+      currency: "USD",
+      language: "en",
+      notes: "Thank you for your business",
+    };
+
+    const mockBillResponse: Bill = {
+      id: "bill-123",
+      bill_number: "BILL-001",
+      bill_date: "2023-01-01",
+      bill_due_date: "2023-01-15",
+      contact: "contact-id-123",
+      currency: "USD",
+      amount: 200,
+      balance: 200,
+      tax_amount: 0,
+      created_ts: "2023-01-01T12:00:00Z",
+      modified_ts: "2023-01-01T12:00:00Z",
+      language: "en",
+      line_items: [
+        {
+          id: "line-item-123",
+          account: "account-123",
+          description: "Test Product",
+          quantity: 2,
+          unit_amount: 100,
+          line_amount: 200,
+          tax_amount: 0,
+          created_ts: "2023-01-01T12:00:00Z",
+          modified_ts: "2023-01-01T12:00:00Z",
+          tax_rate: "tax-rate-123",
+        },
+      ],
+    };
+
+    it("should create a bill with valid parameters", async () => {
+      const mockCreateBill = jest.fn().mockResolvedValue(mockBillResponse);
+      MockedWafeqClient.mockResponses.createBill = mockCreateBill;
+
+      const result = await client.createBill(validBillParams);
+
+      expect(result).toEqual(mockBillResponse);
+      expect(mockCreateBill).toHaveBeenCalledWith(validBillParams);
+    });
+
+    it("should throw error when bill number is missing", async () => {
+      const invalidParams = { ...validBillParams } as Partial<BillCreateParams>;
+      delete invalidParams.bill_number;
+
+      await expect(
+        client.createBill(invalidParams as BillCreateParams)
+      ).rejects.toThrow("Validation error: Bill number is required");
+    });
+
+    it("should create a bill without language field", async () => {
+      const paramsWithoutLanguage = { ...validBillParams };
+      // @ts-ignore - We're testing the case where language is not provided
+      paramsWithoutLanguage.language = undefined;
+
+      const mockResponseWithoutLanguage = { ...mockBillResponse };
+      // @ts-ignore - We're testing the case where language is not provided
+      mockResponseWithoutLanguage.language = undefined;
+
+      const mockCreateBill = jest
+        .fn()
+        .mockResolvedValue(mockResponseWithoutLanguage);
+      MockedWafeqClient.mockResponses.createBill = mockCreateBill;
+
+      const result = await client.createBill(paramsWithoutLanguage);
+
+      expect(result).toEqual(mockResponseWithoutLanguage);
+      expect(mockCreateBill).toHaveBeenCalledWith(paramsWithoutLanguage);
+    });
+
+    it("should create a bill with optional fields", async () => {
+      const paramsWithOptionalFields: BillCreateParams = {
+        ...validBillParams,
+        attachments: ["file1.pdf", "file2.pdf"],
+        branch: "branch-123",
+        debit_notes: [
+          {
+            amount: 50,
+            debit_note: "debit-note-123",
+          },
+        ],
+        order_number: "ORDER-001",
+        project: "project-123",
+        reference: "REF-001",
+        status: "DRAFT" as BillStatusEnum,
+        tax_amount_type: "TAX_EXCLUSIVE" as TaxAmountTypeEnum,
+      };
+
+      const mockResponseWithOptionalFields: Bill = {
+        ...mockBillResponse,
+        attachments: ["file1.pdf", "file2.pdf"],
+        branch: "branch-123",
+        debit_notes: [
+          {
+            amount: 50,
+            debit_note: "debit-note-123",
+          },
+        ],
+        order_number: "ORDER-001",
+        project: "project-123",
+        reference: "REF-001",
+        status: "DRAFT" as BillStatusEnum,
+        tax_amount_type: "TAX_EXCLUSIVE" as TaxAmountTypeEnum,
+      };
+
+      const mockCreateBill = jest
+        .fn()
+        .mockResolvedValue(mockResponseWithOptionalFields);
+      MockedWafeqClient.mockResponses.createBill = mockCreateBill;
+
+      const result = await client.createBill(paramsWithOptionalFields);
+
+      expect(result).toEqual(mockResponseWithOptionalFields);
+      expect(mockCreateBill).toHaveBeenCalledWith(paramsWithOptionalFields);
     });
   });
 });

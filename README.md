@@ -1,14 +1,15 @@
 # UniBilling by **[UNICODE Team](https://www.unicodesolutions.co/)**
 
-A powerful TypeScript SDK for seamless invoice management and payment processing with Wafeq, providing comprehensive invoice generation and management capabilities
+A powerful TypeScript SDK for seamless invoice and bill management with Wafeq, providing comprehensive invoice and bill generation and management capabilities
 
 # UniBilling
 
-A TypeScript SDK for interacting with the Wafeq Invoice API.
+A TypeScript SDK for interacting with the Wafeq Invoice and Bill API.
 
 ## Features
 
 - Create, retrieve, and delete invoices
+- Create and manage bills
 - Download invoice PDFs
 - Bulk send invoices
 - Type-safe API with TypeScript support
@@ -66,6 +67,42 @@ const invoice = await client.createInvoice({
   place_of_supply: "DUBAI", // For UAE organizations
   status: "DRAFT", // Default: "DRAFT"
   tax_amount_type: "TAX_EXCLUSIVE", // Default: "TAX_EXCLUSIVE"
+});
+
+// Create a bill
+const bill = await client.createBill({
+  bill_number: "BILL-2023-001",
+  bill_date: "2023-05-15",
+  bill_due_date: "2023-06-15", // Required for bills
+  contact: "contact-id-123", // Optional: The supplier contact ID
+  currency: "USD",
+  line_items: [
+    {
+      account: "account-id-123",
+      description: "Office Supplies",
+      quantity: 2,
+      unit_amount: 500,
+      tax_rate: "0.15", // Optional: 15% tax rate
+      discount: 5, // Optional: 5% discount
+    },
+  ],
+  // Optional fields
+  notes: "Thank you for your service",
+  language: "en", // Optional: Defaults to "en"
+  attachments: ["receipt.pdf"], // Optional: Array of attachment URLs
+  branch: "branch-id-123", // Optional: Branch associated with the bill
+  debit_notes: [
+    // Optional: Array of debit notes
+    {
+      amount: 100,
+      debit_note: "debit-note-id-123",
+    },
+  ],
+  order_number: "ORDER-001", // Optional: Associated order number
+  project: "project-id-123", // Optional: Associated project
+  reference: "REF-001", // Optional: Reference number
+  status: "DRAFT", // Optional: Defaults to "DRAFT". Can be "DRAFT", "AUTHORIZED", or "PAID"
+  tax_amount_type: "TAX_EXCLUSIVE", // Optional: Defaults to "TAX_EXCLUSIVE"
 });
 
 // Get an invoice by ID
