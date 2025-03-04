@@ -11,6 +11,7 @@ A TypeScript SDK for interacting with the Wafeq Invoice and Bill API.
 - Create, retrieve, and delete invoices
 - Create and manage bills
 - Download invoice PDFs
+- Download bill PDFs
 - Bulk send invoices
 - Type-safe API with TypeScript support
 - Automatic error handling
@@ -110,6 +111,9 @@ const retrievedInvoice = await client.getInvoice("invoice-id-123");
 
 // Download invoice PDF
 const pdfBuffer = await client.downloadInvoicePdf("invoice-id-123");
+
+// Download bill PDF
+const billPdfBuffer = await client.downloadBillPdf("bill-id-123");
 
 // Delete an invoice
 await client.deleteInvoice("invoice-id-123");
