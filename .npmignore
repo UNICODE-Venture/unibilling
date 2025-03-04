@@ -1,0 +1,31 @@
+# Source files
+src/
+*.ts
+
+# Test files
+__tests__/
+*.test.ts
+jest.config.js
+
+# Development files
+.git/
+.gitignore
+.npmrc
+.eslintrc
+.prettierrc
+.editorconfig
+
+# Build files
+dist/*.test.js
+dist/*.spec.js
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Misc
+.DS_Store
+.env
+.env.*
+*.log 

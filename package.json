@@ -4,20 +4,35 @@
   "description": "A lightweight wrapper for the Wafeq accounting and invoicing API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "jest --config jest.config.js",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "prepare": "npm run build"
   },
   "keywords": [
     "wafeq",
     "accounting",
     "invoicing",
     "e-invoice",
-    "api"
+    "api",
+    "typescript",
+    "sdk"
   ],
   "author": "Ehtesham Ansari",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UNICODE-Venture/wafeq-invoice-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/UNICODE-Venture/wafeq-invoice-sdk/issues"
+  },
+  "homepage": "https://github.com/UNICODE-Venture/wafeq-invoice-sdk#readme",
   "dependencies": {
     "axios": "^1.6.0"
   },
@@ -27,5 +42,8 @@
     "jest": "^29.5.0",
     "ts-jest": "^29.1.0",
     "typescript": "^5.0.4"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
